@@ -1,5 +1,6 @@
 <head>
-  <title>maze</title>
+	<title>maze</title>
+	<link href='http://fonts.googleapis.com/css?family=Lato:100|Montserrat' rel='stylesheet' type='text/css'>
 </head>
 
 <body>
@@ -10,7 +11,7 @@
 <template name="header">
 	<div class = "header">
   		<h1>Wow so a<span class="text-red">[</span><span class="text-lime">maze</span><span class="text-red">]</span></h1>
-  		<h2>slip and slide. go bananas.</h2>
+  		<p>slip and slide to all the blocks! <br> use the arrow keys to control.</p>
   		<div class = "buttons">
     		<span class="button shadow-small" id="new-game">New Game</span>
     		<span class="button shadow-small" id="restart">Restart</span>
@@ -20,7 +21,7 @@
 </template>
 
 <template name="main">
-	<div class="main">
+	<div class="main" id="main">
 		<div class="game shadow-small"></div>
 		{{ > score}}
 	</div>
@@ -28,6 +29,10 @@
 
 <template name="block">
   <div class="block wall" data-coords="{{ row }}-{{ col }}" style="top:{{top}}px; left:{{left}}px;"></div>
+</template>
+
+<template name="wallperm">
+  <div class="block wall-perm" data-coords="{{ row }}-{{ col }}" style="top:{{top}}px; left:{{left}}px;"></div>
 </template>
 
 <template name="path">

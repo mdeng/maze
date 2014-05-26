@@ -40,7 +40,71 @@ function animate_move(res) {
 	}, 200, 'easeOutQuart', func);
 } 
 
-function show_blocks(blocks, template, block_class) {
+
+function setup() {
+	var game = $(".game").get(0);
+	// build permanent walls
+	for (var i = 1; i < ROWS-1; i++) {
+		var w1 = UI.renderWithData(Template.wallperm, 
+			{row: i, col: 0, top:i*BLOCK_DIM, left:0});
+		UI.insert(w1, game);
+
+		var w2= UI.renderWithData(Template.wallperm, 
+		{row: i, col: COLS-1, top:i*BLOCK_DIM, left:(COLS-1)*BLOCK_DIM});
+		UI.insert(w2, game);
+	}
+	
+	for (var j = 0; j < COLS; j++) {
+		var w1 = UI.renderWithData(Template.wallperm, 
+		{row: 0, col: j, top:0, left:j*BLOCK_DIM});
+		UI.insert(w1, game);
+
+		var w2= UI.renderWithData(Template.wallperm, 
+		{row: ROWS-1, col: j, top:(ROWS-1)*BLOCK_DIM, left:j*BLOCK_DIM});
+		UI.insert(w2, game);
+	}
+
+	// build permanent walls
+	var start = Session.get("start");
+	var end = Session.get("end");
+	$("[data-coords="+start.r+"-"+start.c+"]").addClass("empty");
+	$("[data-coords="+end.r+"-"+end.c+"]").addClass("empty");
+	// build normal walls
+	add_blocks(Session.get('walls'), Template.block, ".wall");
+	// build player
+	add_blocks([Session.get('me')], Template.me, ".me");
+	// make blocks visible
+	$(".block:not(.empty)").css({opacity:1});
+	
+	// yay
+	$("body").transit({opacity:1}, 1000, "easeOutQuart", function () {});
+}
+
+function new_game() {
+	// redo walls
+	var start = Session.get("start");
+	var end = Session.get("end");
+
+	$(".empty").addClass("replaced");
+	$(".empty").removeClass("empty");
+	$("[data-coords="+start.r+"-"+start.c+"]").addClass("empty");
+	$("[data-coords="+end.r+"-"+end.c+"]").addClass("empty");
+
+	$(".replaced:not(.empty)").transit({opacity:1}, 1000, "easeOutQuart", function() {});
+	$(".empty").transit({opacity:0}, 1000, "easeOutQuart", function () {});
+	$(".replaced").removeClass("replaced");
+
+	$(".wall").remove();
+	$(".path").remove();
+
+	show_blocks(Session.get('walls'), Template.block, ".wall");
+
+	redraw_me();
+}
+
+function add_blocks(blocks, template, block_class) {
+	console.log(block_class);
+	console.log(blocks);
 	var game = $(".game").get(0);
 	for (var i = 0; i < blocks.length; i++) {
 		var renderedWall = UI.renderWithData(template, 
@@ -48,20 +112,40 @@ function show_blocks(blocks, template, block_class) {
 			 top: blocks[i].r*BLOCK_DIM, left:blocks[i].c*BLOCK_DIM});
 		UI.insert(renderedWall, game);		
 	}
+}
+
+function show_blocks(blocks, template, block_class, duration) {
+	add_blocks(blocks, template, block_class);
+
+	duration = duration || 1000;
 
 	var el = $(block_class);
 	el.transit({
 		opacity: 1
-	}, 1000);
+	}, duration);
 }
 
+function restart() {
+	var old_el = $(".me");
+	old_el.removeClass("me");
+
+	show_blocks(Session.get("deleted"), Template.block, ".wall", 1000);
+	show_blocks([Session.get("start")], Template.me, ".me", 1000);
+
+	old_el.transit({opacity:0}, 1000, "easeOutQuart", function(){
+		old_el.remove();
+	});
+}
 
 function redraw_me() {
-	$(".me").remove();
-	var me = Session.get("me");
-	var renderedMe = UI.renderWithData(Template.me, 
-		{top:me.r * BLOCK_DIM, left:me.c *BLOCK_DIM});
-	UI.insert(renderedMe, $(".game").get(0));
+	var old_el = $(".me");
+	old_el.removeClass("me");
+
+	show_blocks([Session.get("start")], Template.me, ".me", 1000);
+
+	old_el.transit({opacity:0}, 1000, "easeOutQuart", function(){
+		old_el.remove();
+	});
 }
 
 function render_board() {
@@ -99,5 +183,8 @@ document.MAZE.display = {
 	animate_move: animate_move,
 	render_board: render_board,
 	redraw_me: redraw_me,
-	show_blocks: show_blocks
+	show_blocks: show_blocks,
+	restart: restart,
+	setup:setup,
+	new_game:new_game,
 };

@@ -14,12 +14,16 @@
 @orange: #FF9009;
 @black: rgba(0,0,0,0.3);
 
-html, body {
+html {
 	background: @dark-gray;
 	color: @white;
 	font-family: "Montserrat", sans-serif;
 	margin: 0;
 	padding: 0;
+}
+
+body{
+	opacity: 0;
 }
 
 .text-red {
@@ -50,49 +54,43 @@ html, body {
   h1 {
     font-weight: 700;
     letter-spacing: 5px;
-    margin: 0;
+    margin: 10px 0;
     text-transform: uppercase;
 
     .red { color: @red; }
     .blue { color: @blue; }
   }
 
-  h2 {
+  p {
   	font-family: "lato";
     font-weight: 100;
+    font-size: 1.2em;
     letter-spacing: 3px;
-    margin: 0;
-  }
-
-  p {
-    font-weight: 300;
-    margin: 20px 0 0;
-
-    a {
-      font-weight: 400;
-    }
+    margin: 20px;
   }
 
   .buttons {
-  	margin: 30px 0;
+  	margin: 40px 0 30px 0;
   }
 }
 
-.main {
+#main {
 	position:relative;
 	margin: 0 auto;
 	height: 500px;
     width: 750px;
     background-color: @off-white;
+
     .game {
 		position: relative;
 		.block {
 			height: 25px;
 			width: 25px;
 			position: absolute;
+			opacity: 0;
 		}
 
-		.wall {
+		.wall, .wall-perm {
 			background-color: @red;
 		}
 
@@ -102,11 +100,9 @@ html, body {
 
 		.path {
 			background-color: @lime-clear;
-			opacity: 0;
 		}
 		.covered {
 			background-color: @lime;
-			opacity: 0;
 		}
 	}
 

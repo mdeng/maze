@@ -3,38 +3,35 @@ document.MAZE = document.MAZE || {};
 
 function restart() {
 	var start = Session.get('start');
-	Session.set('covered', []);
 	Session.set('me', {r: start.r, c: start.c});
-
+	Session.set('covered', []);
 	// replace deleted blocks
-	
 	var board = Session.get('board');
 	var deleted = Session.get('deleted');
-	console.log(deleted);
 	for (var i = 0; i < deleted.length; i++) {
 		board[deleted[i].r][deleted[i].c] = WALL;
 	}
 	Session.set('board', board);
-	document.MAZE.display.show_blocks(deleted, Template.block, ".wall");
 	Session.set('deleted', []);
-
-	document.MAZE.display.redraw_me();
 }
 
 // initialize
 
+
 function new_game() {
-	reset_board();
+	new_maze();
 	Session.set('score', 0);
 }
 
-function reset_board() {
+function new_maze() {	 /// altenately, next_puzzle
 	Session.set('covered', []);
 	Session.set('deleted', []);
+	console.log('ok');
 
-	// construct a maze
+	// Initialize board
 	var board = [];
-	while(!construct_maze(board, walls)) {
+	// construct a maze
+	while(!construct_maze(board)) {
 		console.log('attempting to construct maze');
 	}
 	console.log('done');
@@ -56,21 +53,36 @@ function reset_board() {
   
 	path.pop(0);
 	$("#fade").bind("click", function() {
-    	document.MAZE.display.show_blocks(path, Template.path, ".path");
+    	document.MAZE.display.show_blocks(path, Template.path, ".path", 1000);
   	});
-  	document.MAZE.display.render_board();
 }
 
-function construct_maze(board, walls) {
-	var nwalls = 0;
+function construct_maze(board) {
+	// board 
 	for (var i = 0; i < ROWS; i++) {	
 		board[i] = Array.apply(null, new Array(COLS)).map(Number.prototype.valueOf, EMPTY);
 	}
+	//  border walls
+	for (var i = 0; i < COLS; i++) {
+		board[0][i] = WALL_PERM;
+		board[ROWS-1][i] = WALL_PERM;
+	}
+	for (var i = 1; i < ROWS-1; i++) {
+		board[i][0] = WALL_PERM;
+		board[i][COLS-1] = WALL_PERM;
+	}
 
 	// pick start and end
+	var start = Session.get("start");
+	var end = Session.get("end");
+	if (start != undefined) {
+		board[start.r][start.c] = WALL_PERM;
+		board[end.r][end.c] = WALL_PERM;
+	}
+	console.log('hi');
+	console.log(board);
 	start = {r:0, c:Math.floor(Math.random()*(COLS-2))+1};
 	end = {r:ROWS-1, c:Math.floor(Math.random()*(COLS-2))+1};
-
 
 	var path = [];
 	board[start.r][start.c] = PATH;
@@ -81,32 +93,15 @@ function construct_maze(board, walls) {
 	path.push({r:start.r, c:start.c});
 	path.push({r:end.r, c:end.c});
 	Session.set('path', path);
-	console.log(Session.get('path'));
 
 	Session.set('start', start);
 	Session.set('end', end);
 
 	Session.set('me', {r: start.r, c: start.c, dir: DOWN});
 
-	// build border walls
-	for (var i = 0; i < start.c; i++) {
-		board[0][i] = WALL_PERM;
-	}
-	for (var i = start.c + 1; i < COLS; i++) {
-		board[0][i] = WALL_PERM;
-	}
-	for (var i = 0; i < end.c; i++) {
-		board[ROWS-1][i] = WALL_PERM;
-	}
-	for (var i = end.c + 1; i < COLS; i++) {
-		board[ROWS-1][i] = WALL_PERM;
-	}
-	for (var i = 1; i < ROWS-1; i++) {
-		board[i][0] = WALL_PERM;
-		board[i][COLS-1] = WALL_PERM;
-	}
-
 	cur = {r: start.r, c: start.c, dir: null};
+
+	var nwalls = 0;
 	while (nwalls < MIN_WALLS) {
 		console.log('walls: '+nwalls);
 		if (!choose_next(cur, board)) {
@@ -396,7 +391,8 @@ function try_finish() {
 	var me = Session.get('me');
 	if (me.r == end.r && me.c == end.c) {
 		Session.set('score', Session.get('score')+1);
-		reset_board();
+		new_maze();
+		document.MAZE.display.new_game();
 	}
 }
 

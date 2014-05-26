@@ -30,6 +30,7 @@ $(function() {
   if (!Session.get("board")) {
     console.log("no blocks");
     document.MAZE.game.new_game();
+    document.MAZE.display.setup();
   } else {
     document.MAZE.display.render_board();
   }
@@ -47,9 +48,15 @@ $(function() {
   });
 
   // Handle "new game"
-  $("#new-game").click(document.MAZE.game.new_game);
-  $("#restart").click(document.MAZE.game.restart);
+  $("#new-game").click(function(){
+    document.MAZE.game.new_game();
+    console.log("done");
+    document.MAZE.display.new_game();
+  });
 
-
+  $("#restart").click(function() {
+    document.MAZE.game.restart();
+    document.MAZE.display.restart();
+  });
 });
 
