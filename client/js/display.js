@@ -11,23 +11,33 @@ function block_class(block) {
 	}
 }
 
-function animate_move(dest) {
+function animate_move(res) {
 	var el = $('.me');
 	el.css("zIndex", 100);
-	el.transit({
-		top: dest.r * BLOCK_DIM,
-		left: dest.c * BLOCK_DIM
-	}, 200, 'easeOutQuart', function() {
-			/*$("[data-coords=" +	 coords(t.i, t.j) + "]").remove();
-			el.attr("data-coords", coords(t.i, t.j));
-			el.removeClass("blue");
+
+	var func = function() {
+		if (res.wall) {
+			var wall_el = $("[data-coords="+res.wall.r+"-"+res.wall.c+"]");
+			console.log(wall_el);
+			wall_el.transit({opacity:0}, 100, 'easeOutQuart', function(){});
+		} else {
+			console.log("aslkfdjsal");
+			res.callback();
+		}
+		/*el.attr("data-coords", coords(t.i, t.j));
+		el.removeClass("blue");
 			el.removeClass("red");
 			el.removeClass("number");
 			el.addClass(document.THREE.util.tile_class(t.t));
 			el.html(t.t);*/
 
 			// el.effect("bounce", {distance: 30, times: 3});
-	});
+	};
+
+	el.transit({
+		top: res.dest.r * BLOCK_DIM,
+		left: res.dest.c * BLOCK_DIM
+	}, 200, 'easeOutQuart', func);
 } 
 
 function show_blocks(blocks, template, block_class) {
@@ -41,7 +51,7 @@ function show_blocks(blocks, template, block_class) {
 
 	var el = $(block_class);
 	el.transit({
-		opacity: 0.5
+		opacity: 1
 	}, 1000);
 }
 
@@ -65,7 +75,7 @@ function render_board() {
 
 			var b = board[i][j];
 
-			if (board[i][j] == WALL) {
+			if (board[i][j] >= WALL) {
 				//var block = Template.block({row: i, col: j, 
 											/// left: (j*BLOCK_DIM), top: (i*BLOCK_DIM)});
 				//block = $(block).addClass(block_class(WALL));

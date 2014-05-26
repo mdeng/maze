@@ -27,11 +27,11 @@
 </template>
 
 <template name="block">
-  <div class="block wall" data-coords="{{ row }} {{ col }}" style="top:{{top}}px; left:{{left}}px;"></div>
+  <div class="block wall" data-coords="{{ row }}-{{ col }}" style="top:{{top}}px; left:{{left}}px;"></div>
 </template>
 
 <template name="path">
-  <div class="block path" data-coords="{{ row }} {{ col }}" style="top:{{top}}px; left:{{left}}px;"></div>
+  <div class="block path" data-coords="{{ row }}-{{ col }}" style="top:{{top}}px; left:{{left}}px;"></div>
 </template>
 
 <template name="me">

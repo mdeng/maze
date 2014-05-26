@@ -9,11 +9,13 @@ UP = 38;
 DOWN = 40;
 
 EMPTY = 0
-WALL = 1
 PATH = 2
 END = 3
 PLAYER = 4
 COVERED = 5
+
+WALL = 10
+WALL_PERM = 11
 
 MIN_WALLS = 10
 
@@ -48,9 +50,6 @@ $(function() {
   $("#new-game").click(document.MAZE.game.new_game);
   $("#restart").click(document.MAZE.game.restart);
 
-  $("#fade").click(function() {
-    var path = Session.get('path');
-    document.MAZE.display.show_blocks(path, Template.path, ".path");
-  });
+
 });
 

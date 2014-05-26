@@ -5,6 +5,19 @@ function restart() {
 	var start = Session.get('start');
 	Session.set('covered', []);
 	Session.set('me', {r: start.r, c: start.c});
+
+	// replace deleted blocks
+	
+	var board = Session.get('board');
+	var deleted = Session.get('deleted');
+	console.log(deleted);
+	for (var i = 0; i < deleted.length; i++) {
+		board[deleted[i].r][deleted[i].c] = WALL;
+	}
+	Session.set('board', board);
+	document.MAZE.display.show_blocks(deleted, Template.block, ".wall");
+	Session.set('deleted', []);
+
 	document.MAZE.display.redraw_me();
 }
 
@@ -13,28 +26,29 @@ function restart() {
 function new_game() {
 	reset_board();
 	Session.set('score', 0);
-	Session.set('covered', []);
-	Session.set('path', []);
 }
 
 function reset_board() {
-	var board = [];
+	Session.set('covered', []);
+	Session.set('deleted', []);
 
+	// construct a maze
+	var board = [];
 	while(!construct_maze(board, walls)) {
 		console.log('attempting to construct maze');
 	}
 	console.log('done');
 	Session.set('board', board);
 
+	// save board info
 	var walls = [];
 	for (var i = 0; i < ROWS; i++) {
 		for (var j = 0; j < COLS; j++) {
 			if (board[i][j] == WALL) {
-				walls.push({row:i, col:j});
+				walls.push({r:i, c:j});
 			}
 		}
 	}
-	//console.log(walls);
 	Session.set('walls', walls);
 
 	var path = Session.get('path');
@@ -76,20 +90,20 @@ function construct_maze(board, walls) {
 
 	// build border walls
 	for (var i = 0; i < start.c; i++) {
-		board[0][i] = WALL;
+		board[0][i] = WALL_PERM;
 	}
 	for (var i = start.c + 1; i < COLS; i++) {
-		board[0][i] = WALL;
+		board[0][i] = WALL_PERM;
 	}
 	for (var i = 0; i < end.c; i++) {
-		board[ROWS-1][i] = WALL;
+		board[ROWS-1][i] = WALL_PERM;
 	}
 	for (var i = end.c + 1; i < COLS; i++) {
-		board[ROWS-1][i] = WALL;
+		board[ROWS-1][i] = WALL_PERM;
 	}
 	for (var i = 1; i < ROWS-1; i++) {
-		board[i][0] = WALL;
-		board[i][COLS-1] = WALL;
+		board[i][0] = WALL_PERM;
+		board[i][COLS-1] = WALL_PERM;
 	}
 
 	cur = {r: start.r, c: start.c, dir: null};
@@ -121,7 +135,7 @@ function construct_end(cur, end, board) {
 
 		if (tcur.c < tend.c) { // need to move right, then down
 			var c = tcur.c;
-			while (c < tend.c && board[tcur.r][c+1] != WALL) {
+			while (c < tend.c && board[tcur.r][c+1] < WALL) {
 				c++;
 			}
 			if (c == tend.c && board[tcur.r][c+1] == EMPTY) {
@@ -147,7 +161,7 @@ function construct_end(cur, end, board) {
 
 		} else { // need to move left, then down
 			var c = tcur.c;
-			while (c > tend.c && board[tcur.r][c-1] != WALL) {
+			while (c > tend.c && board[tcur.r][c-1] < WALL) {
 				c--;
 			}
 			if (c == tend.c && board[tcur.r][c-1] == EMPTY) {
@@ -184,59 +198,85 @@ function construct_end(cur, end, board) {
 function get_dest(cur, dir, board) {
 	if (dir == UP) {
 		var r = cur.r;
-		while (r-1 >= 0 && board[r-1][cur.c] != WALL) {
+		while (r-1 >= 0 && board[r-1][cur.c] < WALL) {
 			r--;
 		}
 		return {r: r, c: cur.c};
 
 	} else if (dir == DOWN) {
 		var r = cur.r;
-		while (r+1 < ROWS && board[r+1][cur.c] != WALL) {
+		while (r+1 < ROWS && board[r+1][cur.c] < WALL) {
 			r++;
 		}
 		return {r: r, c: cur.c};
 	} if (dir == LEFT) {
 		var c = cur.c;
-		while (c-1 >= 0 && board[cur.r][c-1] != WALL) {
+		while (c-1 >= 0 && board[cur.r][c-1] < WALL) {
 			c--;
 		}
 		return {r: cur.r, c: c};
 	} if (dir == RIGHT) {
 		var c = cur.c;
-		while (c+1 < COLS && board[cur.r][c+1] != WALL) {
+		while (c+1 < COLS && board[cur.r][c+1] < WALL) {
 			c++;
 		}
 		return {r: cur.r, c: c};
 	}
 }
 
-function move_dest(cur, dir, board) {
+function move_dest(cur, dir) {
 	var r = cur.r;
 	var c = cur.c;
+	var board = Session.get('board');
 	var covered = Session.get('covered');
+	var deleted = Session.get('deleted');
+	var walls = Session.get('walls');
+	var wall;
 	if (dir == UP) {
-		while (r-1 >= 0 && board[r-1][c] != WALL) {
+		while (r-1 >= 0 && board[r-1][c] < WALL) {
 			covered.push({r: r, c: c});
 			r--;
 		}
+		wall = {r:r-1, c:c};
 	} else if (dir == DOWN) {
-		while (r+1 < ROWS && board[r+1][c] != WALL) {
+		while (r+1 < ROWS && board[r+1][c] < WALL) {
 			covered.push({r: r, c: c});
 			r++;
 		}
+		wall = {r:r+1, c:c};
 	} else if (dir == LEFT) {
-		while (c-1 >= 0 && board[r][c-1] != WALL) {
+		while (c-1 >= 0 && board[r][c-1] < WALL) {
 			covered.push({r: r, c: c});
 			c--;
 		}
+		wall = {r:r, c:c-1};
 	} else if (dir == RIGHT) {
-		while (c+1 < COLS && board[r][c+1] != WALL) {
+		while (c+1 < COLS && board[r][c+1] < WALL) {
 			covered.push({r: r, c: c});
 			c++;
 		}
+		wall = {r:r, c:c+1};
+	}
+			console.log(wall);
+	if (wall.r >= 0 && wall.r < ROWS && board[wall.r][wall.c] == WALL) {
+		board[wall.r][wall.c] = EMPTY;
+		deleted.push({r:wall.r, c:wall.c});
+		Session.set('deleted', deleted);
+		Session.set('board', board);
+	} else {
+		wall = null;
 	}
 	Session.set('covered', covered);
-	return {r: r, c: c};
+	console.log("?D?FDF?D");
+	var callback;
+	if (deleted.length == walls.length) {
+		console.log("finish!!!");
+		callback = try_finish;
+	} else {
+		console.log("nope");
+		callback = function() {};
+	}
+	return {dest:{r: r, c: c}, wall: wall, callback: callback};
 }
 
 function choose_next(cur, board) {
@@ -247,9 +287,9 @@ function choose_next(cur, board) {
 	// radiate outwards
 	if (cur.dir == UP || cur.dir == DOWN) {
 		// left
-		if (cur.c > 1 && board[cur.r][cur.c - 1] != WALL) {
+		if (cur.c > 1 && board[cur.r][cur.c - 1] < WALL) {
 			var c = cur.c - 2;
-			while (c >= 0 && board[cur.r][c] != WALL) {
+			while (c >= 0 && board[cur.r][c] < WALL) {
 				if (board[cur.r][c] != PATH) {
 					possible.push({r:cur.r, c:c, dir: LEFT});
 				}
@@ -258,9 +298,9 @@ function choose_next(cur, board) {
 		}
 
 		// right
-		if (cur.c < COLS - 1 && board[cur.r][cur.c + 1] != WALL) {
+		if (cur.c < COLS - 1 && board[cur.r][cur.c + 1] < WALL) {
 			var c = cur.c+2;
-			while (c < COLS && board[cur.r][c] != WALL) {
+			while (c < COLS && board[cur.r][c] < WALL) {
 				if (board[cur.r][c] != PATH) {
 					possible.push({r:cur.r, c:c, dir: RIGHT});
 				}
@@ -270,9 +310,9 @@ function choose_next(cur, board) {
 	}
 	else { //if (cur.dir == RIGHT || cur.dir == LEFT) {
 		// up
-		if (cur.r > 1 && board[cur.r - 1][cur.c] != WALL) {
+		if (cur.r > 1 && board[cur.r - 1][cur.c] < WALL) {
 			var r = cur.r - 2;
-			while (r >= 0 && board[r][cur.c] != WALL) {
+			while (r >= 0 && board[r][cur.c] < WALL) {
 				if (board[r][cur.c] != PATH) {
 					possible.push({r:r, c:cur.c, dir: UP});
 				}
@@ -281,9 +321,9 @@ function choose_next(cur, board) {
 		}
 
 		// down
-		if (cur.r < ROWS - 1 && board[cur.r + 1][cur.c] != WALL) {
+		if (cur.r < ROWS - 1 && board[cur.r + 1][cur.c] < WALL) {
 			var r = cur.r + 2;
-			while (r < ROWS && board[r][cur.c] != WALL) {
+			while (r < ROWS && board[r][cur.c] < WALL) {
 				if (board[r][cur.c] != PATH) {
 					possible.push({r:r, c:cur.c, dir: DOWN});
 				}
@@ -345,12 +385,16 @@ function choose_next(cur, board) {
 }
 
 function move(dir) {
-	var dest = move_dest(Session.get('me'), dir, Session.get('board'));
-	document.MAZE.display.animate_move(dest);
-	Session.set('me', dest);
+	var res = move_dest(Session.get('me'), dir);
+	document.MAZE.display.animate_move(res);
+	Session.set('me', res.dest);
+}
 
+function try_finish() {
+	console.log("try finish");
 	var end = Session.get('end');
-	if (dest.r == end.r && dest.c == end.c) {
+	var me = Session.get('me');
+	if (me.r == end.r && me.c == end.c) {
 		Session.set('score', Session.get('score')+1);
 		reset_board();
 	}
@@ -377,4 +421,5 @@ document.MAZE.game = {
 	move: move,
 	new_game: new_game,
 	restart: restart,
+	try_finish: try_finish, 
 };
