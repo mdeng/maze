@@ -1,0 +1,50 @@
+<head>
+  <title>maze</title>
+</head>
+
+<body>
+  {{> header}}
+  {{> main}}
+</body>
+
+<template name="header">
+	<div class = "header">
+  		<h1>Wow so a<span class="text-red">[</span><span class="text-lime">maze</span><span class="text-red">]</span></h1>
+  		<h2>slip and slide. go bananas.</h2>
+  		<div class = "buttons">
+    		<span class="button shadow-small" id="new-game">New Game</span>
+    		<span class="button shadow-small" id="restart">Restart</span>
+    		<span class="button shadow-small" id="fade">I Suck</span>
+    	</div>
+    </div>
+</template>
+
+<template name="main">
+	<div class="main">
+		<div class="game shadow-small"></div>
+		{{ > score}}
+	</div>
+</template>
+
+<template name="block">
+  <div class="block wall" data-coords="{{ row }} {{ col }}" style="top:{{top}}px; left:{{left}}px;"></div>
+</template>
+
+<template name="path">
+  <div class="block path" data-coords="{{ row }} {{ col }}" style="top:{{top}}px; left:{{left}}px;"></div>
+</template>
+
+<template name="me">
+  <div class="block me" style="top:{{top}}px; left:{{left}}px;"></div>
+</template>
+
+<template name="covered">
+  <div class="block covered" style="top:{{top}}px; left:{{left}}px;"></div>
+</template>
+
+<template name="score">
+	<div class="score shadow-small">
+		<div class = "score-label">Score</div>
+		<div class = "score-number">{{ score }}</div>
+	</div>
+</template>
